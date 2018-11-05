@@ -76,7 +76,7 @@ perf1 <- aov (mag1~ mag2*numeric_group, data=x)#the covariate here is mag1
 summary(perf1)
 
 #Had to install the broom package to run the TukeyHSD test
-thsd <-TurkeyHSD(perf1,"numeric_group", ordered=TRUE)
+thsd <-TurkeyHSD(perf1,"numeric_group", ordered=TRUE)#but it still not working
 ```
 #T-test for pretest to postest performance for action group 
 ```{r echo=True}
