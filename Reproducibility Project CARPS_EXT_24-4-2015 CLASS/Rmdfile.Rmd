@@ -1,0 +1,90 @@
+---
+title: "CARPS_EXT_24-4-2015 CLASSS"
+author: "Kengthsagn Louis"
+date: "11/3/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+install.packages("devtools") 
+devtools::install_github("METRICS-CARPS/CARPSreports")
+library(CARPSreports)
+
+#Methods
+#Participants read a description of an angular momentim and then completed a pretest of 52 trials (and 6 practice trials) with the following two-forced questions: 
+#1. “Did Woody experience more or less force than the Template?”
+#2. “Are the forces in the same or in different directions?”
+
+#They were then assigned to either an action group or an observation group to receive ten minutes training. They then answered the same two forced questions as a posttest. 
+
+##Target Outcomes
+#As copied directly from the article: Pretest performance did not differ as a function of group, as revealed by a one-way analysis of variance (ANOVA), F(1, 42) = 0.01, p > .250 (see Fig. 2, left panel). However, an ANOVA controlling for pretest accuracy revealed that group did have a significant effect on posttest performance, F(1, 41) = 5.21, p = .028, ηp 2 = .113. Students in the action group showed a significantly nonzero (~10%) gain in accuracy from pretest to posttest, t(21) = 3.07, p = .006. Those in the observation group did not, t(21) = –0.01, p > .250 (see Fig. 2, left panel).
+
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(stringr)
+library(devtools)
+install.packages("CARPSreports") #Says Warning in install.packages :Package ‘CARPSreports’ is not available (for R version 3.5.1)
+
+```{r echo=TRUE}
+load("~/Desktop/Stanford Year 1/Fall 2018/Methods 251/Reproducibility HW/CARPS_EXT_24-4-2015_CLASS/data/study 1 physics_dataverse.RData")
+View (x)
+structure(x)
+head(x)
+colnames(x)
+table(x$group)
+```
+
+#Calculate ANOVA as a function of group (action or obervation)
+
+To see if pretest varies as a function of group.
+
+```{r echo=True}
+#Caculate means
+##1)Create a new column to transform group into a numeric value such that action = 1, and observation =2
+x = x %>%
+  mutate(numeric_group=as.numeric(group))
+View(x)
+##Still need to calculate the mean
+
+##2)Visualize the data
+ggplot(x, aes(x=group, y=mag1, fill=group)) +
+geom_bar(position="dodge", stat="identity") + 
+labs(title = "Pretest differences in perfomance as a function of group", y = "Performance means", x= "Group")+
+scale_fill_brewer(palette="Set1")
+
+##4)Now the on-way ANOVA to see if to see if pretest performance varies as a function of group
+summary(aov(mag1~numeric_group,data=x))
+
+#The result for this is non-sginificant, but I am getting slightly different numbers. I probbaly made a mistake in somehwehere. 
+#My results: F(1,42)=.015, p=.903
+#The reported results in the article: F(1, 42) = 0.01, p > .250
+
+#Let's see what the F statistic is if I used lm instead of aov
+summary(lm(mag1~numeric_group,data=x))
+
+#My results are still the same: F(1,42)=.01491  p=.903 is consistent with what I found when I ran the one way anova using the aov function. 
+```
+
+
+##Control for pretest accuracy and calculate postest performance using ANCOVA
+```{r echo=True}
+perf1 <- aov (mag1~ mag2*numeric_group, data=x)#the covariate here is mag1 
+summary(perf1)
+
+#Had to install the broom package to run the TukeyHSD test
+thsd <-TurkeyHSD(perf1,"numeric_group", ordered=TRUE)
+```
+#T-test for pretest to postest performance for action group 
+```{r echo=True}
+t-test <-
+mutate(group_by(numeric_group)) %>%
+t.test(mag_improvement~numeric_group, data = x, paired = TRUE)
+```
+#T-test for pretest to postest performance for observation group
+```{r echo=True}
+
+```
